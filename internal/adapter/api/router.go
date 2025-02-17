@@ -8,14 +8,15 @@ import (
 	"github.com/go-onboarding/internal/core/service"
 	"github.com/go-onboarding/internal/core/model"
 	"github.com/go-onboarding/internal/core/erro"
-	"github.com/go-onboarding/internal/infra/observ"
+	go_core_observ "github.com/eliezerraj/go-core/observability"
 	"github.com/eliezerraj/go-core/coreJson"
 	//"github.com/gorilla/mux"
 )
 
-var childLogger = log.With().Str("handler", "api.router").Logger()
+var childLogger = log.With().Str("adapter", "api.router").Logger()
 var core_json coreJson.CoreJson
 var core_apiError coreJson.APIError
+var tracerProvider go_core_observ.TracerProvider
 
 /*type APIError struct {
 	StatusCode	int  `json:"statusCode"`
@@ -66,7 +67,7 @@ func (h *HttpRouters) Header(rw http.ResponseWriter, req *http.Request) {
 func (h *HttpRouters) Add(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Debug().Msg("Add")
 
-	span := observ.Span(req.Context(), "handler.Add")
+	span := tracerProvider.Span(req.Context(), "handler.Add")
 	defer span.End()
 
 	onBoarding := model.Onboarding{}

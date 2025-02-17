@@ -1,9 +1,15 @@
 package model
 
+import (
+	go_core_pg "github.com/eliezerraj/go-core/database/pg"
+	go_core_observ "github.com/eliezerraj/go-core/observability" 
+)
+
 type AppServer struct {
-	InfoPod 		*InfoPod 		`json:"info_pod"`
-	Server     		*Server     	`json:"server"`
-	ConfigOTEL		*ConfigOTEL		`json:"otel_config"`
+	InfoPod 		*InfoPod 					`json:"info_pod"`
+	Server     		*Server     				`json:"server"`
+	ConfigOTEL		*go_core_observ.ConfigOTEL	`json:"otel_config"`
+	DatabaseConfig	*go_core_pg.DatabaseConfig  `json:"database"`	
 }
 
 type InfoPod struct {
@@ -23,16 +29,6 @@ type Server struct {
 	WriteTimeout	int `json:"writeTimeout"`
 	IdleTimeout		int `json:"idleTimeout"`
 	CtxTimeout		int `json:"ctxTimeout"`
-}
-
-type ConfigOTEL struct {
-	OtelExportEndpoint		string
-	TimeInterval            int64    `mapstructure:"TimeInterval"`
-	TimeAliveIncrementer    int64    `mapstructure:"RandomTimeAliveIncrementer"`
-	TotalHeapSizeUpperBound int64    `mapstructure:"RandomTotalHeapSizeUpperBound"`
-	ThreadsActiveUpperBound int64    `mapstructure:"RandomThreadsActiveUpperBound"`
-	CpuUsageUpperBound      int64    `mapstructure:"RandomCpuUsageUpperBound"`
-	SampleAppPorts          []string `mapstructure:"SampleAppPorts"`
 }
 
 type Onboarding struct {

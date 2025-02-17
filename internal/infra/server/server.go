@@ -11,8 +11,8 @@ import (
 	"context"
 
 	"github.com/go-onboarding/internal/core/model"
-	"github.com/go-onboarding/internal/infra/observ"
-	"github.com/go-onboarding/internal/handler/api"
+	go_core_observ "github.com/eliezerraj/go-core/observability"  
+	"github.com/go-onboarding/internal/adapter/api"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -26,6 +26,8 @@ import (
 
 var childLogger = log.With().Str("handler", "api").Logger()
 var core_middleware middleware.ToolsMiddleware
+var tracerProvider go_core_observ.TracerProvider
+var infoTrace go_core_observ.InfoTrace
 
 type HttpServer struct {
 	httpServer	*model.Server
@@ -43,7 +45,15 @@ func (h HttpServer) StartHttpAppServer(	ctx context.Context,
 	// ---------------------- OTEL ---------------
 	childLogger.Info().Str("OTEL_EXPORTER_OTLP_ENDPOINT :", appServer.ConfigOTEL.OtelExportEndpoint).Msg("")
 	
-	tp := observ.NewTracerProvider(ctx, appServer.ConfigOTEL, appServer.InfoPod)
+	infoTrace.PodName = appServer.InfoPod.PodName
+	infoTrace.PodVersion = appServer.InfoPod.ApiVersion
+	infoTrace.ServiceType = "k8-workload"
+	infoTrace.Env = appServer.InfoPod.Env
+	infoTrace.AccountID = appServer.InfoPod.AccountID
+
+	tp := tracerProvider.NewTracerProvider(	ctx, 
+											appServer.ConfigOTEL, 
+											&infoTrace)
 	defer func() { 
 		err := tp.Shutdown(ctx)
 		if err != nil{

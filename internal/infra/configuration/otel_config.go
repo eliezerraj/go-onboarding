@@ -4,10 +4,10 @@ import(
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/go-onboarding/internal/core/model"
+	go_core_observ "github.com/eliezerraj/go-core/observability" 
 )
 
-func GetOtelEnv() model.ConfigOTEL {
+func GetOtelEnv() go_core_observ.ConfigOTEL {
 	childLogger.Debug().Msg("GetOtelEnv")
 
 	err := godotenv.Load(".env")
@@ -15,7 +15,7 @@ func GetOtelEnv() model.ConfigOTEL {
 		childLogger.Info().Err(err).Msg("env file not found")
 	}
 
-	var configOTEL	model.ConfigOTEL
+	var configOTEL	go_core_observ.ConfigOTEL
 
 	configOTEL.TimeInterval = 1
 	configOTEL.TimeAliveIncrementer = 1

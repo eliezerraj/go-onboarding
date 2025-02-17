@@ -11,13 +11,16 @@ import(
 	"github.com/go-onboarding/internal/core/model"
 	"github.com/go-onboarding/internal/core/service"
 	"github.com/go-onboarding/internal/infra/server"
-	"github.com/go-onboarding/internal/handler/api"
-	"github.com/eliezerraj/go-core/core"
+	"github.com/go-onboarding/internal/adapter/api"
+	"github.com/go-onboarding/internal/adapter/database"
+	go_core_pg "github.com/eliezerraj/go-core/database/pg"  
 )
 
 var(
 	logLevel = 	zerolog.DebugLevel
 	appServer	model.AppServer
+	databaseConfig go_core_pg.DatabaseConfig
+	databasePGServer go_core_pg.DatabasePGServer
 )
 
 func init(){
@@ -25,11 +28,13 @@ func init(){
 	zerolog.SetGlobalLevel(logLevel)
 
 	infoPod, server := configuration.GetInfoPod()
-	configOTEL := configuration.GetOtelEnv()
+	configOTEL 		:= configuration.GetOtelEnv()
+	databaseConfig 	:= configuration.GetDatabaseEnv() 
 
 	appServer.InfoPod = &infoPod
 	appServer.Server = &server
 	appServer.ConfigOTEL = &configOTEL
+	appServer.DatabaseConfig = &databaseConfig
 }
 
 func main (){
@@ -39,14 +44,32 @@ func main (){
 	log.Debug().Interface("appServer :",appServer).Msg("")
 	log.Debug().Msg("----------------------------------------------------")
 
-	var core core.ToolsCore
-	core.Test()
-
 	ctx, cancel := context.WithTimeout(	context.Background(), 
 										time.Duration( appServer.Server.ReadTimeout ) * time.Second)
 	defer cancel()
 
-	workerService := service.NewWorkerService()
+	// Open Database
+	count := 1
+	var err error
+	for {
+		log.Debug().Interface("===== > databaseConfig :",appServer.DatabaseConfig).Msg("")
+		databasePGServer, err = databasePGServer.NewDatabasePGServer(ctx, *appServer.DatabaseConfig)
+		if err != nil {
+			if count < 3 {
+				log.Error().Err(err).Msg("error open database... trying again !!")
+			} else {
+				log.Error().Err(err).Msg("fatal error open Database aborting")
+				panic(err)
+			}
+			time.Sleep(3 * time.Second)
+			count = count + 1
+			continue
+		}
+		break
+	}
+
+	database := database.NewWorkerRepository(&databasePGServer)
+	workerService := service.NewWorkerService(database)
 	httpRouters := api.NewHttpRouters(workerService)
 	httpServer := server.NewHttpAppServer(appServer.Server)
 	httpServer.StartHttpAppServer(ctx, &httpRouters, &appServer)
