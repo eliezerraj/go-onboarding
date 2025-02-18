@@ -1,6 +1,7 @@
 package model
 
 import (
+	"time"
 	go_core_pg "github.com/eliezerraj/go-core/database/pg"
 	go_core_observ "github.com/eliezerraj/go-core/observability" 
 )
@@ -36,5 +37,10 @@ type Onboarding struct {
 }
 
 type Person struct {
-	Name 		string `json:"name"`
+	ID			int 		`json:"id"`
+	PersonID	string		`json:"person_id,omitempty"`
+	Name 		string 		`json:"name"`
+	CreateAt	time.Time 	`json:"create_at,omitempty"`
+	UpdateAt	*time.Time 	`json:"update_at,omitempty"`
+	TenantID	string 		`json:"tenant_id,omitempty"`
 }
