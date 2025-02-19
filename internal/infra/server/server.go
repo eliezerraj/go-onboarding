@@ -95,6 +95,14 @@ func (h HttpServer) StartHttpAppServer(	ctx context.Context,
 	getPerson.HandleFunc("/person/{id}", core_middleware.MiddleWareErrorHandler(httpRouters.GetPerson))		
 	getPerson.Use(otelmux.Middleware("go-onboarding"))
 
+	updatePerson := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+	updatePerson.HandleFunc("/person/update", core_middleware.MiddleWareErrorHandler(httpRouters.UpdatePerson))		
+	updatePerson.Use(otelmux.Middleware("go-onboarding"))
+
+	listPerson := myRouter.Methods(http.MethodGet, http.MethodOptions).Subrouter()
+	listPerson.HandleFunc("/person/list/{id}", core_middleware.MiddleWareErrorHandler(httpRouters.ListPerson))		
+	listPerson.Use(otelmux.Middleware("go-onboarding"))
+
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpServer.Port),      	
 		Handler:      myRouter,                	          

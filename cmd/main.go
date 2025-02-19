@@ -61,7 +61,7 @@ func main (){
 				log.Error().Err(err).Msg("fatal error open Database aborting")
 				panic(err)
 			}
-			time.Sleep(3 * time.Second)
+			time.Sleep(3 * time.Second) //backoff
 			count = count + 1
 			continue
 		}

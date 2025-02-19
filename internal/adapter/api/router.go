@@ -104,3 +104,59 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
 }
+
+func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) error {
+	childLogger.Debug().Msg("UpdatePerson")
+
+	span := tracerProvider.Span(req.Context(), "adapter.api.UpdatePerson")
+	defer span.End()
+
+	onBoarding := model.Onboarding{}
+	err := json.NewDecoder(req.Body).Decode(&onBoarding)
+    if err != nil {
+		core_apiError = core_apiError.NewAPIError(erro.ErrUnmarshal, http.StatusBadRequest)
+		return &core_apiError
+    }
+	defer req.Body.Close()
+
+	res, err := h.workerService.UpdatePerson(req.Context(), &onBoarding)
+	if err != nil {
+		switch err {
+		case erro.ErrNotFound:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+		default:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+		}
+		return &core_apiError
+	}
+	
+	return core_json.WriteJSON(rw, http.StatusOK, res)
+}
+
+func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) error {
+	childLogger.Debug().Msg("ListPerson")
+
+	span := tracerProvider.Span(req.Context(), "adapter.api.ListPerson")
+	defer span.End()
+
+	vars := mux.Vars(req)
+	varID := vars["id"]
+
+	onBoarding := model.Onboarding{}
+	person := model.Person{}
+	person.PersonID = varID
+	onBoarding.Person = &person
+
+	res, err := h.workerService.ListPerson(req.Context(), &onBoarding)
+	if err != nil {
+		switch err {
+		case erro.ErrNotFound:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+		default:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+		}
+		return &core_apiError
+	}
+	
+	return core_json.WriteJSON(rw, http.StatusOK, res)
+}
