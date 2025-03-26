@@ -1,16 +1,21 @@
 package api
 
 import (
+	"fmt"
 	"encoding/json"
 	"net/http"
+	"io/ioutil"
+
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-onboarding/internal/core/service"
 	"github.com/go-onboarding/internal/core/model"
 	"github.com/go-onboarding/internal/core/erro"
-	go_core_observ "github.com/eliezerraj/go-core/observability"
+
 	"github.com/eliezerraj/go-core/coreJson"
 	"github.com/gorilla/mux"
+
+	go_core_observ "github.com/eliezerraj/go-core/observability"
 )
 
 var childLogger = log.With().Str("component", "go-onboarding").Str("package", "internal.adapter.api").Logger()
@@ -23,6 +28,7 @@ type HttpRouters struct {
 	workerService 	*service.WorkerService
 }
 
+// Above create routers
 func NewHttpRouters(workerService *service.WorkerService) HttpRouters {
 	childLogger.Info().Str("func","NewHttpRouters").Send()
 
@@ -35,16 +41,14 @@ func NewHttpRouters(workerService *service.WorkerService) HttpRouters {
 func (h *HttpRouters) Health(rw http.ResponseWriter, req *http.Request) {
 	childLogger.Info().Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Msg("Health")
 
-	health := true
-	json.NewEncoder(rw).Encode(health)
+	json.NewEncoder(rw).Encode(model.MessageRouter{Message: "true"})
 }
 
 // About return a live
 func (h *HttpRouters) Live(rw http.ResponseWriter, req *http.Request) {
 	childLogger.Info().Str("func","Live").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
-	live := true
-	json.NewEncoder(rw).Encode(live)
+	json.NewEncoder(rw).Encode(model.MessageRouter{Message: "true"})
 }
 
 // About show all header received
@@ -168,4 +172,53 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 	}
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
+}
+
+// About list person
+func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) error {
+	childLogger.Info().Str("func","UploadFile").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
+
+	// Trace
+	span := tracerProvider.Span(req.Context(), "adapter.api.UploadFile")
+	defer span.End()
+
+	// Check the size
+	err := req.ParseMultipartForm(20 << 20) //20Mb
+	if err != nil {
+		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		return &core_apiError
+	}
+
+	// Open a form
+	file, handler, err := req.FormFile("file")
+	if err != nil {
+		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		return &core_apiError
+	}
+	defer file.Close()
+
+	onboardingFile := model.OnboardingFile{}
+	onboardingFile.FileName = handler.Filename
+	onboardingFile.File, err = ioutil.ReadAll(file)
+	if err != nil {
+		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		return &core_apiError
+	}
+
+	childLogger.Info().Str("func","UploadFile").
+						Interface("file_data", fmt.Sprintf("%v %v %v",handler.Header ,handler.Filename, handler.Size)).
+						Send()
+
+	err = h.workerService.UploadFile(req.Context(), &onboardingFile)
+	if err != nil {
+		switch err {
+		case erro.ErrNotFound:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+		default:
+			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+		}
+		return &core_apiError
+	}
+
+	return json.NewEncoder(rw).Encode(model.MessageRouter{Message: "true"})
 }
