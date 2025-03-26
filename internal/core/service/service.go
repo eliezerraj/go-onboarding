@@ -8,7 +8,7 @@ import(
 	"github.com/rs/zerolog/log"
 )
 
-var childLogger = log.With().Str("core", "service").Logger()
+var childLogger = log.With().Str("component","go-payment").Str("package","internal.core.service").Logger()
 
 type WorkerInterface interface {
 	AddPerson(context.Context, *model.Onboarding) (*model.Onboarding, error)
@@ -22,7 +22,7 @@ type WorkerService struct {
 }
 
 func NewWorkerService(workerRepository *database.WorkerRepository) *WorkerService{
-	childLogger.Debug().Msg("NewWorkerService")
+	childLogger.Info().Str("func","NewWorkerService").Send()
 
 	return &WorkerService{
 		workerRepository: workerRepository,

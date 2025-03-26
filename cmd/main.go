@@ -17,10 +17,11 @@ import(
 )
 
 var(
-	logLevel = 	zerolog.DebugLevel
+	logLevel = 	zerolog.InfoLevel // zerolog.InfoLevel zerolog.DebugLevel
 	appServer	model.AppServer
 	databaseConfig go_core_pg.DatabaseConfig
 	databasePGServer go_core_pg.DatabasePGServer
+	childLogger = log.With().Str("component","go-onboarding").Str("package", "main").Logger()
 )
 
 func init(){
@@ -38,11 +39,7 @@ func init(){
 }
 
 func main (){
-	log.Debug().Msg("----------------------------------------------------")
-	log.Debug().Msg("main")
-	log.Debug().Msg("----------------------------------------------------")
-	log.Debug().Interface("appServer :",appServer).Msg("")
-	log.Debug().Msg("----------------------------------------------------")
+	childLogger.Info().Str("func","main").Interface("appServer :",appServer).Send()
 
 	ctx, cancel := context.WithTimeout(	context.Background(), 
 										time.Duration( appServer.Server.ReadTimeout ) * time.Second)
@@ -52,7 +49,6 @@ func main (){
 	count := 1
 	var err error
 	for {
-		log.Debug().Interface("===== > databaseConfig :",appServer.DatabaseConfig).Msg("")
 		databasePGServer, err = databasePGServer.NewDatabasePGServer(ctx, *appServer.DatabaseConfig)
 		if err != nil {
 			if count < 3 {
@@ -68,9 +64,12 @@ func main (){
 		break
 	}
 
+	// wire	
 	database := database.NewWorkerRepository(&databasePGServer)
 	workerService := service.NewWorkerService(database)
 	httpRouters := api.NewHttpRouters(workerService)
 	httpServer := server.NewHttpAppServer(appServer.Server)
+
+	// start server
 	httpServer.StartHttpAppServer(ctx, &httpRouters, &appServer)
 }

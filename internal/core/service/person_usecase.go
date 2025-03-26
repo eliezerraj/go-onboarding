@@ -11,8 +11,7 @@ import(
 var tracerProvider go_core_observ.TracerProvider
 
 func (s WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
-	childLogger.Debug().Msg("AddPerson")
-	childLogger.Debug().Interface("onboarding: ",onboarding).Msg("")
+	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.AddPerson")
 	defer span.End()
@@ -41,8 +40,7 @@ func (s WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboardi
 }
 
 func (s WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
-	childLogger.Debug().Msg("GetPerson")
-	childLogger.Debug().Interface("onboarding: ",onboarding).Msg("")
+	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.GetPerson")
 	defer span.End()
@@ -55,8 +53,7 @@ func (s WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboardi
 }
 
 func (s WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
-	childLogger.Debug().Msg("UpdatePerson")
-	childLogger.Debug().Interface("onboarding: ",onboarding).Msg("")
+	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.UpdatePerson")
 	defer span.End()
@@ -95,8 +92,7 @@ func (s WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboa
 }
 
 func (s WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboarding) (*[]model.Onboarding, error){
-	childLogger.Debug().Msg("ListPerson")
-	childLogger.Debug().Interface("onboarding: ",onboarding).Msg("")
+	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.ListPerson")
 	defer span.End()

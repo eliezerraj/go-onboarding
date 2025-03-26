@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var childLogger = log.With().Str("adapter", "api.router").Logger()
+var childLogger = log.With().Str("component", "go-onboarding").Str("package", "internal.adapter.api").Logger()
 
 var core_json coreJson.CoreJson
 var core_apiError coreJson.APIError
@@ -24,33 +24,39 @@ type HttpRouters struct {
 }
 
 func NewHttpRouters(workerService *service.WorkerService) HttpRouters {
+	childLogger.Info().Str("func","NewHttpRouters").Send()
+
 	return HttpRouters{
 		workerService: workerService,
 	}
 }
 
+// About return a health
 func (h *HttpRouters) Health(rw http.ResponseWriter, req *http.Request) {
-	childLogger.Debug().Msg("Health")
+	childLogger.Info().Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Msg("Health")
 
 	health := true
 	json.NewEncoder(rw).Encode(health)
 }
 
+// About return a live
 func (h *HttpRouters) Live(rw http.ResponseWriter, req *http.Request) {
-	childLogger.Debug().Msg("Live")
+	childLogger.Info().Str("func","Live").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	live := true
 	json.NewEncoder(rw).Encode(live)
 }
 
+// About show all header received
 func (h *HttpRouters) Header(rw http.ResponseWriter, req *http.Request) {
-	childLogger.Debug().Msg("Header")
+	childLogger.Info().Str("func","Header").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 	
 	json.NewEncoder(rw).Encode(req.Header)
 }
 
+// About add person
 func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error {
-	childLogger.Debug().Msg("AddPerson")
+	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.AddPerson")
 	defer span.End()
@@ -58,7 +64,7 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(erro.ErrUnmarshal, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
 		return &core_apiError
     }
 	defer req.Body.Close()
@@ -77,8 +83,9 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 	return core_json.WriteJSON(rw, http.StatusOK, res)
 }
 
+// About get person
 func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error {
-	childLogger.Debug().Msg("GetPerson")
+	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.GetPerson")
 	defer span.End()
@@ -105,8 +112,9 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 	return core_json.WriteJSON(rw, http.StatusOK, res)
 }
 
+// About update person
 func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) error {
-	childLogger.Debug().Msg("UpdatePerson")
+	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.UpdatePerson")
 	defer span.End()
@@ -114,7 +122,7 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(erro.ErrUnmarshal, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
 		return &core_apiError
     }
 	defer req.Body.Close()
@@ -133,8 +141,9 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 	return core_json.WriteJSON(rw, http.StatusOK, res)
 }
 
+// About list person
 func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) error {
-	childLogger.Debug().Msg("ListPerson")
+	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.ListPerson")
 	defer span.End()
