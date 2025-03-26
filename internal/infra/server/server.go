@@ -107,6 +107,10 @@ func (h HttpServer) StartHttpAppServer(	ctx context.Context,
 	listPerson.HandleFunc("/person/list/{id}", core_middleware.MiddleWareErrorHandler(httpRouters.ListPerson))		
 	listPerson.Use(otelmux.Middleware("go-onboarding"))
 
+	uploadFile := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+	uploadFile.HandleFunc("/uploadFile", core_middleware.MiddleWareErrorHandler(httpRouters.UploadFile))		
+	uploadFile.Use(otelmux.Middleware("go-onboarding"))
+
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpServer.Port),      	
 		Handler:      myRouter,                	          

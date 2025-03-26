@@ -3,14 +3,40 @@ package service
 import(
 	"context"
 
+	"github.com/go-onboarding/internal/adapter/database"
+	"github.com/rs/zerolog/log"
+
 	"github.com/go-onboarding/internal/core/model"
 	"github.com/go-onboarding/internal/core/erro"
+
 	go_core_observ "github.com/eliezerraj/go-core/observability"
+	go_core_s3_bucket "github.com/eliezerraj/go-core/aws/bucket_s3"
 )
 
 var tracerProvider go_core_observ.TracerProvider
+var childLogger = log.With().Str("component","go-payment").Str("package","internal.core.service").Logger()
 
-func (s WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
+type WorkerService struct {
+	workerRepository 	*database.WorkerRepository
+	workerBucketS3 		*go_core_s3_bucket.AwsBucketS3
+	awsService			*model.AwsService
+}
+
+// About create a new worker service
+func NewWorkerService(	workerRepository *database.WorkerRepository,
+						workerBucketS3 *go_core_s3_bucket.AwsBucketS3,
+						awsService		*model.AwsService) *WorkerService{
+	childLogger.Info().Str("func","NewWorkerService").Send()
+
+	return &WorkerService{
+		workerRepository: workerRepository,
+		workerBucketS3: workerBucketS3,
+		awsService: awsService,
+	}
+}
+
+// About create a person
+func (s *WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.AddPerson")
@@ -39,7 +65,8 @@ func (s WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboardi
 	return res, nil
 }
 
-func (s WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
+// About get a person
+func (s *WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.GetPerson")
@@ -52,7 +79,8 @@ func (s WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboardi
 	return res, nil
 }
 
-func (s WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
+// About update a person
+func (s *WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.UpdatePerson")
@@ -91,7 +119,8 @@ func (s WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboa
 	return onboarding, nil
 }
 
-func (s WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboarding) (*[]model.Onboarding, error){
+// About list a person
+func (s *WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboarding) (*[]model.Onboarding, error){
 	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
 	span := tracerProvider.Span(ctx, "service.ListPerson")
@@ -102,4 +131,26 @@ func (s WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboard
 		return nil, err
 	}
 	return res, nil
+}
+
+// About upload file
+func (s *WorkerService) UploadFile(ctx context.Context, onboardingFile *model.OnboardingFile) (error){
+	childLogger.Info().Str("func","UploadFile").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
+
+	span := tracerProvider.Span(ctx, "service.UploadFile")
+	defer span.End()
+	
+	onboardingFile.BucketName = s.awsService.BucketName
+	onboardingFile.FilePath = s.awsService.FilePath
+
+	err := s.workerBucketS3.PutObject(	ctx, 
+										onboardingFile.BucketName,
+										onboardingFile.FilePath, 
+										onboardingFile.FileName,
+										onboardingFile.File)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

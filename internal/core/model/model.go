@@ -10,7 +10,8 @@ type AppServer struct {
 	InfoPod 		*InfoPod 					`json:"info_pod"`
 	Server     		*Server     				`json:"server"`
 	ConfigOTEL		*go_core_observ.ConfigOTEL	`json:"otel_config"`
-	DatabaseConfig	*go_core_pg.DatabaseConfig  `json:"database"`	
+	DatabaseConfig	*go_core_pg.DatabaseConfig  `json:"database"`
+	AwsService		*AwsService					`json:"aws_services"`
 }
 
 type InfoPod struct {
@@ -32,6 +33,16 @@ type Server struct {
 	CtxTimeout		int `json:"ctxTimeout"`
 }
 
+type AwsService struct {
+	AwsRegion			string `json:"aws_region"`
+	BucketName			string `json:"bucket_name"`
+	FilePath			string `json:"file_path"`
+}
+
+type MessageRouter struct {
+	Message			string `json:"message"`
+}
+
 type Onboarding struct {
 	Person 			*Person `json:"person"`
 }
@@ -43,4 +54,11 @@ type Person struct {
 	CreateAt	time.Time 	`json:"create_at,omitempty"`
 	UpdateAt	*time.Time 	`json:"update_at,omitempty"`
 	TenantID	string 		`json:"tenant_id,omitempty"`
+}
+
+type OnboardingFile struct {
+	BucketName	string	`json:"bucket_name,omitempty"`
+	FilePath	string 	`json:"file_path"`
+	FileName	string	`json:"file_name,omitempty"`
+	File		[]byte	`json:"file,omitempty"`
 }

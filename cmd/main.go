@@ -13,33 +13,43 @@ import(
 	"github.com/go-onboarding/internal/infra/server"
 	"github.com/go-onboarding/internal/adapter/api"
 	"github.com/go-onboarding/internal/adapter/database"
-	go_core_pg "github.com/eliezerraj/go-core/database/pg"  
+
+	go_core_pg "github.com/eliezerraj/go-core/database/pg"
+	go_core_aws_config "github.com/eliezerraj/go-core/aws/aws_config"
+	go_core_s3_bucket "github.com/eliezerraj/go-core/aws/bucket_s3"
 )
 
 var(
 	logLevel = 	zerolog.InfoLevel // zerolog.InfoLevel zerolog.DebugLevel
 	appServer	model.AppServer
-	databaseConfig go_core_pg.DatabaseConfig
-	databasePGServer go_core_pg.DatabasePGServer
+	databaseConfig 		go_core_pg.DatabaseConfig
+	databasePGServer 	go_core_pg.DatabasePGServer
+	goCoreAwsConfig 	go_core_aws_config.AwsConfig
+	goCoreAwsBucketS3	go_core_s3_bucket.AwsBucketS3
+
 	childLogger = log.With().Str("component","go-onboarding").Str("package", "main").Logger()
 )
 
+// Above init
 func init(){
-	log.Debug().Msg("init")
+	childLogger.Info().Str("func","init").Send()
 	zerolog.SetGlobalLevel(logLevel)
 
 	infoPod, server := configuration.GetInfoPod()
 	configOTEL 		:= configuration.GetOtelEnv()
 	databaseConfig 	:= configuration.GetDatabaseEnv() 
+	awsService 		:= configuration.GetAwsServiceEnv() 
 
 	appServer.InfoPod = &infoPod
 	appServer.Server = &server
 	appServer.ConfigOTEL = &configOTEL
+	appServer.AwsService = &awsService
 	appServer.DatabaseConfig = &databaseConfig
 }
 
+// Above main
 func main (){
-	childLogger.Info().Str("func","main").Interface("appServer :",appServer).Send()
+	childLogger.Info().Str("func","main").Interface("appServer",appServer).Send()
 
 	ctx, cancel := context.WithTimeout(	context.Background(), 
 										time.Duration( appServer.Server.ReadTimeout ) * time.Second)
@@ -64,12 +74,21 @@ func main (){
 		break
 	}
 
+	// Prepare aws services
+	awsConfig, err := goCoreAwsConfig.NewAWSConfig(ctx, appServer.AwsService.AwsRegion)
+	if err != nil {
+		panic("error create new aws session " + err.Error())
+	}
+
+	// Create a S3 worker
+	s3BucketWorker := goCoreAwsBucketS3.NewAwsS3Bucket(awsConfig)
+
 	// wire	
 	database := database.NewWorkerRepository(&databasePGServer)
-	workerService := service.NewWorkerService(database)
+	workerService := service.NewWorkerService(database, s3BucketWorker, appServer.AwsService)
 	httpRouters := api.NewHttpRouters(workerService)
-	httpServer := server.NewHttpAppServer(appServer.Server)
 
 	// start server
+	httpServer := server.NewHttpAppServer(appServer.Server)
 	httpServer.StartHttpAppServer(ctx, &httpRouters, &appServer)
 }
