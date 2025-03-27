@@ -54,7 +54,7 @@ spec:
             - ALL
         ports:
         - name: http
-          containerPort: 5010
+          containerPort: 6001
           protocol: TCP
         readinessProbe:
             httpGet:
