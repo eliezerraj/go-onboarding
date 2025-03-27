@@ -17,6 +17,7 @@ import(
 	go_core_pg "github.com/eliezerraj/go-core/database/pg"
 	go_core_aws_config "github.com/eliezerraj/go-core/aws/aws_config"
 	go_core_s3_bucket "github.com/eliezerraj/go-core/aws/bucket_s3"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws"
 )
 
 var(
@@ -79,6 +80,9 @@ func main (){
 	if err != nil {
 		panic("error create new aws session " + err.Error())
 	}
+
+	// Otel over aws services
+	otelaws.AppendMiddlewares(&awsConfig.APIOptions)
 
 	// Create a S3 worker
 	s3BucketWorker := goCoreAwsBucketS3.NewAwsS3Bucket(awsConfig)
