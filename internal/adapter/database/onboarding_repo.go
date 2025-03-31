@@ -38,15 +38,15 @@ func (w WorkerRepository) AddPerson(ctx context.Context, tx pgx.Tx, onboarding *
 
 	query := `INSERT INTO person (	person_id, 
 									name,
-									create_at,
+									created_at,
 									tenant_id) 
 									VALUES($1, $2, $3, $4) RETURNING id`
 
-	onboarding.Person.CreateAt = time.Now()
+	onboarding.Person.CreatedAt = time.Now()
 
 	row := tx.QueryRow(ctx, query,  onboarding.Person.PersonID,  
 									onboarding.Person.Name,
-									onboarding.Person.CreateAt,
+									onboarding.Person.CreatedAt,
 									onboarding.Person.TenantID)
 
 	var id int
@@ -78,8 +78,8 @@ func (w WorkerRepository) GetPerson(ctx context.Context, onboarding *model.Onboa
 	query := `SELECT id,
 					person_id,	 
 					name,
-					create_at,
-					update_at 
+					created_at,
+					updated_at 
 				FROM public.person 
 				WHERE person_id =$1`
 
@@ -93,8 +93,8 @@ func (w WorkerRepository) GetPerson(ctx context.Context, onboarding *model.Onboa
 		err := rows.Scan( 	&res_person.ID,
 							&res_person.PersonID, 
 							&res_person.Name, 
-							&res_person.CreateAt,
-							&res_person.UpdateAt,
+							&res_person.CreatedAt,
+							&res_person.UpdatedAt,
 						)
 		if err != nil {
 			return nil, errors.New(err.Error())
@@ -112,16 +112,16 @@ func (w WorkerRepository) UpdatePerson(ctx context.Context, tx pgx.Tx, onboardin
 	defer span.End()
 
 	t_updateAt := time.Now()
-	onboarding.Person.UpdateAt = &t_updateAt
+	onboarding.Person.UpdatedAt = &t_updateAt
 
 	query := `Update public.person
 				set name = $2, 
-					update_at = $3
+					updated_at = $3
 				where person_id = $1`
 
 	row, err := tx.Exec(ctx, query, onboarding.Person.PersonID,  
 									onboarding.Person.Name,
-									onboarding.Person.UpdateAt)
+									onboarding.Person.UpdatedAt)
 	if err != nil {
 		return 0, errors.New(err.Error())
 	}
@@ -151,8 +151,8 @@ func (w WorkerRepository) ListPerson(ctx context.Context, onboarding *model.Onbo
 	query := `SELECT id,
 					person_id, 
 					name,
-					create_at,
-					update_at 
+					created_at,
+					updated_at 
 				FROM public.person
 				WHERE person_id >= $1 
 				ORDER BY person_id asc`
@@ -170,8 +170,8 @@ func (w WorkerRepository) ListPerson(ctx context.Context, onboarding *model.Onbo
 		err := rows.Scan( 	&res_person.ID,
 							&res_person.PersonID, 
 							&res_person.Name, 
-							&res_person.CreateAt,
-							&res_person.UpdateAt,
+							&res_person.CreatedAt,
+							&res_person.UpdatedAt,
 						)
 		if err != nil {
 			return nil, errors.New(err.Error())

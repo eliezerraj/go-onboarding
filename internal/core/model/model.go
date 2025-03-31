@@ -51,8 +51,8 @@ type Person struct {
 	ID			int 		`json:"id,omitempty"`
 	PersonID	string		`json:"person_id,omitempty"`
 	Name 		string 		`json:"name,omitempty"`
-	CreateAt	time.Time 	`json:"create_at,omitempty"`
-	UpdateAt	*time.Time 	`json:"update_at,omitempty"`
+	CreatedAt	time.Time 	`json:"created_at,omitempty"`
+	UpdatedAt	*time.Time 	`json:"updated_at,omitempty"`
 	TenantID	string 		`json:"tenant_id,omitempty"`
 }
 
