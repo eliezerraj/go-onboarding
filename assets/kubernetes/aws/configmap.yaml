@@ -9,7 +9,7 @@ data:
   API_VERSION: "3.0"
   POD_NAME: "go-onboarding.k8"
   PORT: "6001"
-  DB_HOST: "rds-proxy-db-arch.proxy-couoacqalfwt.us-east-2.rds.amazonaws.com"
+  DB_HOST: "rds-proxy-db-arch-02.proxy-cj4aqa08ettf.us-east-2.rds.amazonaws.com"
   DB_PORT: "5432"
   DB_NAME: "postgres"
   DB_SCHEMA: "public"
