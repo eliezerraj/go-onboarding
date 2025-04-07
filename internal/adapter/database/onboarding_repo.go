@@ -16,14 +16,14 @@ import (
 )
 
 var tracerProvider go_core_observ.TracerProvider
-var childLogger = log.With().Str("adapter", "database").Logger()
+var childLogger = log.With().Str("component","go-onboarding").Str("package","internal.adapter.database").Logger()
 
 type WorkerRepository struct {
 	DatabasePGServer *go_core_pg.DatabasePGServer
 }
 
 func NewWorkerRepository(databasePGServer *go_core_pg.DatabasePGServer) *WorkerRepository{
-	childLogger.Debug().Msg("NewWorkerRepository")
+	childLogger.Info().Str("func","NewWorkerRepository").Send()
 
 	return &WorkerRepository{
 		DatabasePGServer: databasePGServer,
@@ -31,7 +31,7 @@ func NewWorkerRepository(databasePGServer *go_core_pg.DatabasePGServer) *WorkerR
 }
 
 func (w WorkerRepository) AddPerson(ctx context.Context, tx pgx.Tx, onboarding *model.Onboarding) (*model.Onboarding, error){
-	childLogger.Debug().Msg("AddPerson")
+	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(ctx, "database.AddPerson")
 	defer span.End()
@@ -61,8 +61,8 @@ func (w WorkerRepository) AddPerson(ctx context.Context, tx pgx.Tx, onboarding *
 }
 
 func (w WorkerRepository) GetPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
-	childLogger.Debug().Msg("GetPerson")
-	
+	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
+
 	span := tracerProvider.Span(ctx, "database.GetPerson")
 	defer span.End()
 
@@ -106,7 +106,7 @@ func (w WorkerRepository) GetPerson(ctx context.Context, onboarding *model.Onboa
 }
 
 func (w WorkerRepository) UpdatePerson(ctx context.Context, tx pgx.Tx, onboarding *model.Onboarding) (int64, error){
-	childLogger.Debug().Msg("UpdatePerson")
+	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(ctx, "database.UpdatePerson")
 	defer span.End()
@@ -134,8 +134,8 @@ func (w WorkerRepository) UpdatePerson(ctx context.Context, tx pgx.Tx, onboardin
 }
 
 func (w WorkerRepository) ListPerson(ctx context.Context, onboarding *model.Onboarding) (*[]model.Onboarding, error){
-	childLogger.Debug().Msg("ListPerson")
-	
+	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
+
 	span := tracerProvider.Span(ctx, "database.ListPerson")
 	defer span.End()
 

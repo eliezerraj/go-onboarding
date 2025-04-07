@@ -22,3 +22,13 @@ spec:
               name: svc-go-onboarding
               port:
                 number: 5010
+    - host: go-onboarding.architecture.caradhras.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-go-onboarding
+              port:
+                number: 5010
