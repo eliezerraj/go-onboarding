@@ -21,7 +21,7 @@ spec:
             service:
               name: svc-go-onboarding
               port:
-                number: 5010
+                number: 6004
     - host: go-onboarding.architecture.caradhras.io
       http:
         paths:
@@ -31,4 +31,4 @@ spec:
             service:
               name: svc-go-onboarding
               port:
-                number: 5010
+                number: 6004

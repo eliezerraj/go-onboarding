@@ -8,7 +8,7 @@ metadata:
 data:
   API_VERSION: "3.0"
   POD_NAME: "go-onboarding.k8"
-  PORT: "6001"
+  PORT: "6004"
   DB_HOST: "rds-proxy-db-arch-02.proxy-cj4aqa08ettf.us-east-2.rds.amazonaws.com"
   DB_PORT: "5432"
   DB_NAME: "postgres"
@@ -16,7 +16,12 @@ data:
   DB_DRIVER: "postgres"
   SETPOD_AZ: "false"
   ENV: "dev"  
+  
   OTEL_EXPORTER_OTLP_ENDPOINT: "arch-eks-02-xray-collector.default.svc.cluster.local:4317"
+  USE_STDOUT_TRACER_EXPORTER: "false"
+  USE_OTLP_COLLECTOR: "true" 
+  AWS_CLOUDWATCH_LOG_GROUP_NAMES: "/dock/eks/eks-arch-02"
+
   AWS_REGION: "us-east-2"
   BUCKET_NAME: 992382474575-eliezer-us-east-2-go-onboarding/
   FILE_PATH: onboarding/
