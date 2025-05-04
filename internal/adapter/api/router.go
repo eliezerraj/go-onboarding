@@ -67,17 +67,27 @@ func (h *HttpRouters) Context(rw http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(rw).Encode(fmt.Sprintf("%v",contextValues))
 }
 
+// About show pgx stats
+func (h *HttpRouters) Stat(rw http.ResponseWriter, req *http.Request) {
+	childLogger.Info().Str("func","Stat").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
+	
+	res := h.workerService.Stat(req.Context())
+
+	json.NewEncoder(rw).Encode(res)
+}
+
 // About add person
 func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.AddPerson")
 	defer span.End()
+	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
 
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
 		return &core_apiError
     }
 	defer req.Body.Close()
@@ -86,9 +96,9 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
 		default:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
 		return &core_apiError
 	}
@@ -102,6 +112,7 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.GetPerson")
 	defer span.End()
+	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
 
 	vars := mux.Vars(req)
 	varID := vars["id"]
@@ -115,9 +126,9 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
 		default:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
 		return &core_apiError
 	}
@@ -131,11 +142,12 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.UpdatePerson")
 	defer span.End()
+	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
 
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
 		return &core_apiError
     }
 	defer req.Body.Close()
@@ -144,9 +156,9 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
 		default:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
 		return &core_apiError
 	}
@@ -160,6 +172,7 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 
 	span := tracerProvider.Span(req.Context(), "adapter.api.ListPerson")
 	defer span.End()
+	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
 
 	vars := mux.Vars(req)
 	varID := vars["id"]
@@ -173,9 +186,9 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
 		default:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
 		return &core_apiError
 	}
@@ -190,18 +203,19 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 	// Trace
 	span := tracerProvider.Span(req.Context(), "adapter.api.UploadFile")
 	defer span.End()
+	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
 
 	// Check the size
 	err := req.ParseMultipartForm(20 << 20) //20Mb
 	if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
 		return &core_apiError
 	}
 
 	// Open a form
 	file, handler, err := req.FormFile("file")
 	if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
 		return &core_apiError
 	}
 	defer file.Close()
@@ -210,7 +224,7 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 	onboardingFile.FileName = handler.Filename
 	onboardingFile.File, err = ioutil.ReadAll(file)
 	if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, http.StatusBadRequest)
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
 		return &core_apiError
 	}
 
@@ -222,9 +236,9 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusNotFound)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
 		default:
-			core_apiError = core_apiError.NewAPIError(err, http.StatusInternalServerError)
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
 		return &core_apiError
 	}
