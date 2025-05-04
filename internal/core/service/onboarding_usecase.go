@@ -9,6 +9,7 @@ import(
 	"github.com/go-onboarding/internal/core/model"
 	"github.com/go-onboarding/internal/core/erro"
 
+	go_core_pg "github.com/eliezerraj/go-core/database/pg"
 	go_core_observ "github.com/eliezerraj/go-core/observability"
 	go_core_s3_bucket "github.com/eliezerraj/go-core/aws/bucket_s3"
 )
@@ -35,6 +36,13 @@ func NewWorkerService(	workerRepository *database.WorkerRepository,
 	}
 }
 
+// About handle/convert http status code
+func (s *WorkerService) Stat(ctx context.Context) (go_core_pg.PoolStats){
+	childLogger.Info().Str("func","Stat").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
+
+	return s.workerRepository.Stat(ctx)
+}
+
 // About create a person
 func (s *WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
@@ -46,14 +54,14 @@ func (s *WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboard
 	if err != nil {
 		return nil, err
 	}
-	
+	defer s.workerRepository.DatabasePGServer.ReleaseTx(conn)
+
 	defer func() {
 		if err != nil {
 			tx.Rollback(ctx)
 		} else {
 			tx.Commit(ctx)
 		}
-		s.workerRepository.DatabasePGServer.ReleaseTx(conn)
 		span.End()
 	}()
 
@@ -90,14 +98,14 @@ func (s *WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onbo
 	if err != nil {
 		return nil, err
 	}
-	
+	defer s.workerRepository.DatabasePGServer.ReleaseTx(conn)
+
 	defer func() {
 		if err != nil {
 			tx.Rollback(ctx)
 		} else {
 			tx.Commit(ctx)
 		}
-		s.workerRepository.DatabasePGServer.ReleaseTx(conn)
 		span.End()
 	}()
 
