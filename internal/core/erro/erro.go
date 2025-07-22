@@ -6,6 +6,7 @@ import (
 
 var (
 	ErrNotFound 		= errors.New("item not found")
+	ErrCertTls 			= errors.New("cert tls is encrypted or invalid")
 	ErrInsert 			= errors.New("insert data error")
 	ErrUpdate			= errors.New("update unsuccessful")
 	ErrUpdateRows		= errors.New("update affect 0 rows")

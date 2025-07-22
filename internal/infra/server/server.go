@@ -20,6 +20,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/eliezerraj/go-core/middleware"
+	"github.com/go-onboarding/internal/core/erro"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
@@ -48,20 +49,20 @@ func setTLSOn(certPEM []byte, certPrivKeyPEM []byte) (*tls.Config, error){
 
 	block, _ := pem.Decode(certPrivKeyPEM)
 	if block == nil {
-		childLogger.Info().Msg("Error to Decode Private Key  !!!")
-		os.Exit(3)
+		childLogger.Info().Msg("Error to Decode Private Key !")
+		return nil, erro.ErrCertTls
 	}
 		
 	if block.Type == "ENCRYPTED PRIVATE KEY" {
-		childLogger.Info().Msg("ENCRYPTED PRIVATE KEY !!!")
-		os.Exit(3)
+		childLogger.Info().Msg("EXITING ... ENCRYPTED PRIVATE KEY !")
+		return nil, erro.ErrCertTls
 	} else {
 		childLogger.Info().Msg("PRIVATE KEY !!!")
 	}
 
 	serverCert, err := tls.X509KeyPair(certPEM, certPrivKeyPEM)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error X509KeyPair !!!")
+		childLogger.Error().Err(err).Msg("error X509KeyPair !")
 		panic(err)
 	}
 
