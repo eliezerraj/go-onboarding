@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing-go-account
+  namespace: test-a
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/default-backend: "svc-go-account"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: go-onboarding.architecture.caradhras.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-go-onboarding
+              port:
+                number: 6004
+  tls:
+  - secretName: sc-certs-go-onboarding-tls
+    hosts:
+      - go-global-apex-mtls.architecture.caradhras.io
