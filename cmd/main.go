@@ -38,13 +38,16 @@ func init(){
 
 	infoPod, server := configuration.GetInfoPod()
 	configOTEL 		:= configuration.GetOtelEnv()
-	databaseConfig 	:= configuration.GetDatabaseEnv() 
+	databaseConfig 	:= configuration.GetDatabaseEnv()
+	certsTls 		:= configuration.GetCertEnv() 
+
 	awsService 		:= configuration.GetAwsServiceEnv() 
 
 	appServer.InfoPod = &infoPod
 	appServer.Server = &server
 	appServer.ConfigOTEL = &configOTEL
 	appServer.AwsService = &awsService
+	appServer.Cert = &certsTls
 	appServer.DatabaseConfig = &databaseConfig
 }
 

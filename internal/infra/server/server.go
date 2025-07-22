@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 	"context"
+	"encoding/pem"
+	"crypto/tls"
 
 	"github.com/go-onboarding/internal/core/model"
 	go_core_observ "github.com/eliezerraj/go-core/observability"  
@@ -34,10 +36,44 @@ type HttpServer struct {
 	httpServer	*model.Server
 }
 
+// about create a httpserver
 func NewHttpAppServer(httpServer *model.Server) HttpServer {
 	childLogger.Info().Str("func","NewHttpAppServer").Send()
 	return HttpServer{httpServer: httpServer }
 }
+
+//about set the server tls
+func setTLSOn(certPEM []byte, certPrivKeyPEM []byte) (*tls.Config, error){
+	childLogger.Info().Str("func","setTLSOn").Send()
+
+	block, _ := pem.Decode(certPrivKeyPEM)
+	if block == nil {
+		childLogger.Info().Msg("Error to Decode Private Key  !!!")
+		os.Exit(3)
+	}
+		
+	if block.Type == "ENCRYPTED PRIVATE KEY" {
+		childLogger.Info().Msg("ENCRYPTED PRIVATE KEY !!!")
+		os.Exit(3)
+	} else {
+		childLogger.Info().Msg("PRIVATE KEY !!!")
+	}
+
+	serverCert, err := tls.X509KeyPair(certPEM, certPrivKeyPEM)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error X509KeyPair !!!")
+		panic(err)
+	}
+
+	serverTLSConf := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		MinVersion: tls.VersionTLS13,
+		InsecureSkipVerify: false,
+	}
+
+	return serverTLSConf, nil
+}
+
 
 // About start http server
 func (h HttpServer) StartHttpAppServer(	ctx context.Context, 
@@ -121,18 +157,36 @@ func (h HttpServer) StartHttpAppServer(	ctx context.Context,
 	uploadFile.HandleFunc("/uploadFile", core_middleware.MiddleWareErrorHandler(httpRouters.UploadFile))		
 	uploadFile.Use(otelmux.Middleware("go-onboarding"))
 
+	// set TLS on
+	var serverTLSConf *tls.Config
+	var err error
+	if appServer.Cert.IsTLS {
+		serverTLSConf, err = setTLSOn(appServer.Cert.CertPEM, appServer.Cert.CertPrivKeyPEM)
+		if err != nil {
+			childLogger.Error().Err(err).Msg("Error set server with TLS")
+		} 
+	}
+
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpServer.Port),      	
 		Handler:      myRouter,                	          
 		ReadTimeout:  time.Duration(h.httpServer.ReadTimeout) * time.Second,   
 		WriteTimeout: time.Duration(h.httpServer.WriteTimeout) * time.Second,  
 		IdleTimeout:  time.Duration(h.httpServer.IdleTimeout) * time.Second, 
+		TLSConfig: serverTLSConf,
 	}
 
 	childLogger.Info().Str("Service Port", strconv.Itoa(h.httpServer.Port)).Send()
 
 	go func() {
-		err := srv.ListenAndServe()
+
+		// spinup a server TLS on / off
+		if appServer.Cert.IsTLS {
+			err = srv.ListenAndServeTLS("","")
+		} else {
+			err = srv.ListenAndServe()
+		} 
+
 		if err != nil {
 			childLogger.Error().Err(err).Msg("canceling http mux server !!!")
 		}

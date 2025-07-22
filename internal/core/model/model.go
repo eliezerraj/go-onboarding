@@ -12,6 +12,7 @@ type AppServer struct {
 	ConfigOTEL		*go_core_observ.ConfigOTEL	`json:"otel_config"`
 	DatabaseConfig	*go_core_pg.DatabaseConfig  `json:"database"`
 	AwsService		*AwsService					`json:"aws_services"`
+	Cert			*Cert						`json:"cert_tls_server"`
 }
 
 type InfoPod struct {
@@ -45,6 +46,14 @@ type MessageRouter struct {
 
 type Onboarding struct {
 	Person 			*Person `json:"person"`
+}
+
+type Cert struct {
+	IsTLS				bool	`json:"server_tls"`	
+	CertPEM 			[]byte 	`json:"cert_pen"`
+	CertPEMStr 			string 	`json:"cert_pen_str"`		
+	CertPrivKeyPEM		[]byte  `json:"private_key"`
+	CertPrivKeyPEMStr	string  `json:"private_key_str"`	 
 }
 
 type Person struct {
