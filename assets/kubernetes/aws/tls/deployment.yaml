@@ -62,26 +62,26 @@ spec:
         - name: http
           containerPort: 6004
           protocol: TCP
-        readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            failureThreshold: 3
-            successThreshold: 1
-            timeoutSeconds: 10
+        #readinessProbe:
+        #  httpGet:
+        #    path: /health
+        #    port: https
+        #  initialDelaySeconds: 5
+        #  periodSeconds: 30
+        #  failureThreshold: 3
+        #  successThreshold: 1
+        #  timeoutSeconds: 10
         livenessProbe:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - "ps -A | grep go-onboarding | grep -v grep"
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            failureThreshold: 3
-            successThreshold: 1
-            timeoutSeconds: 5
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps -A | grep go-onboarding | grep -v grep"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 5
       terminationGracePeriodSeconds: 60
       affinity:
         podAntiAffinity:
