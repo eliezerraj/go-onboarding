@@ -17,7 +17,7 @@ data:
   DB_MAX_CONNECTION: "30"
   SETPOD_AZ: "false"
   ENV: "dev"  
-  SERVER_WITH_TLS: "true"
+  SERVER_WITH_TLS: "false"
 
   OTEL_EXPORTER_OTLP_ENDPOINT: "arch-eks-02-xray-collector.default.svc.cluster.local:4317"
   USE_STDOUT_TRACER_EXPORTER: "false"
