@@ -25,14 +25,12 @@ func GetCertEnv() model.Cert {
 		certTls.IsTLS = true
 
 		certTls.CertPEM, err = os.ReadFile("/var/pod/cert/tls.crt") // full_chain_b64.pem
-		//certTls.CertPEM, err = os.ReadFile("/var/pod/cert/server_account_B64.crt")
 		if err != nil {
 			childLogger.Error().Err(err).Send()
 			panic(err)
 		} 
 
 		certTls.CertPrivKeyPEM, err = os.ReadFile("/var/pod/cert/tls.key") //decrypted_private_key_b64.pem 
-		//certTls.CertPrivKeyPEM, err = os.ReadFile("/var/pod/cert/server_account_B64.key")
 		if err != nil {
 			childLogger.Error().Err(err).Send()
 			panic(err)
