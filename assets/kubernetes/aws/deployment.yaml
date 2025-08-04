@@ -22,6 +22,9 @@ spec:
       - name: volume-secret
         secret:
           secretName: es-rds-arch-secret-go-onboarding
+      - name: volume-cert
+        secret:
+          secretName: sc-certs-go-onboarding-tls
       securityContext:
         runAsUser: 1000
         runAsGroup: 2000
@@ -35,6 +38,9 @@ spec:
         volumeMounts:
           - mountPath: "/var/pod/secret"
             name: volume-secret
+            readOnly: true
+          - mountPath: "/var/pod/cert"
+            name: volume-cert
             readOnly: true
         resources:
            requests:
@@ -57,25 +63,25 @@ spec:
           containerPort: 6004
           protocol: TCP
         readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            failureThreshold: 3
-            successThreshold: 1
-            timeoutSeconds: 10
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 10
         livenessProbe:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - "ps -A | grep go-onboarding | grep -v grep"
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            failureThreshold: 3
-            successThreshold: 1
-            timeoutSeconds: 5
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps -A | grep go-onboarding | grep -v grep"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 5
       terminationGracePeriodSeconds: 60
       affinity:
         podAntiAffinity:
