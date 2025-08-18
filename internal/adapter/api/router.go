@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"time"
+	"context"
 	"encoding/json"
 	"net/http"
 	"reflect"
@@ -27,14 +29,17 @@ var tracerProvider go_core_observ.TracerProvider
 
 type HttpRouters struct {
 	workerService 	*service.WorkerService
+	ctxTimeout		time.Duration
 }
 
 // Above create routers
-func NewHttpRouters(workerService *service.WorkerService) HttpRouters {
+func NewHttpRouters(workerService *service.WorkerService,
+					ctxTimeout	time.Duration) HttpRouters {
 	childLogger.Info().Str("func","NewHttpRouters").Send()
 
 	return HttpRouters{
 		workerService: workerService,
+		ctxTimeout: ctxTimeout,
 	}
 }
 
@@ -80,9 +85,13 @@ func (h *HttpRouters) Stat(rw http.ResponseWriter, req *http.Request) {
 func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
-	span := tracerProvider.Span(req.Context(), "adapter.api.AddPerson")
+	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
+    defer cancel()
+
+	span := tracerProvider.Span(ctx, "adapter.api.AddPerson")
 	defer span.End()
-	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
+
+	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
 
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
@@ -92,7 +101,7 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
     }
 	defer req.Body.Close()
 
-	res, err := h.workerService.AddPerson(req.Context(), &onBoarding)
+	res, err := h.workerService.AddPerson(ctx, &onBoarding)
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
@@ -110,9 +119,13 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
-	span := tracerProvider.Span(req.Context(), "adapter.api.GetPerson")
+	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
+    defer cancel()
+
+	span := tracerProvider.Span(ctx, "adapter.api.GetPerson")
 	defer span.End()
-	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
+
+	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
 
 	vars := mux.Vars(req)
 	varID := vars["id"]
@@ -122,7 +135,7 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 	person.PersonID = varID
 	onBoarding.Person = &person
 
-	res, err := h.workerService.GetPerson(req.Context(), &onBoarding)
+	res, err := h.workerService.GetPerson(ctx, &onBoarding)
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
@@ -140,9 +153,13 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
-	span := tracerProvider.Span(req.Context(), "adapter.api.UpdatePerson")
+	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
+    defer cancel()
+
+	span := tracerProvider.Span(ctx, "adapter.api.UpdatePerson")
 	defer span.End()
-	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
+
+	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
 
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
@@ -152,7 +169,7 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
     }
 	defer req.Body.Close()
 
-	res, err := h.workerService.UpdatePerson(req.Context(), &onBoarding)
+	res, err := h.workerService.UpdatePerson(ctx, &onBoarding)
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
@@ -169,10 +186,14 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 // About list person
 func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
+	
+	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
+    defer cancel()
 
-	span := tracerProvider.Span(req.Context(), "adapter.api.ListPerson")
+	span := tracerProvider.Span(ctx, "adapter.api.ListPerson")
 	defer span.End()
-	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
+
+	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
 
 	vars := mux.Vars(req)
 	varID := vars["id"]
@@ -182,7 +203,7 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 	person.PersonID = varID
 	onBoarding.Person = &person
 
-	res, err := h.workerService.ListPerson(req.Context(), &onBoarding)
+	res, err := h.workerService.ListPerson(ctx, &onBoarding)
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
@@ -200,10 +221,14 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","UploadFile").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
 
+	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
+    defer cancel()
+
 	// Trace
-	span := tracerProvider.Span(req.Context(), "adapter.api.UploadFile")
+	span := tracerProvider.Span(ctx, "adapter.api.UploadFile")
 	defer span.End()
-	trace_id := fmt.Sprintf("%v",req.Context().Value("trace-request-id"))
+
+	trace_id := fmt.Sprintf("%v",ctx.Value("trace-request-id"))
 
 	// Check the size
 	err := req.ParseMultipartForm(20 << 20) //20Mb
@@ -232,7 +257,7 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 						Interface("file_data", fmt.Sprintf("%v %v %v",handler.Header ,handler.Filename, handler.Size)).
 						Send()
 
-	err = h.workerService.UploadFile(req.Context(), &onboardingFile)
+	err = h.workerService.UploadFile(ctx, &onboardingFile)
 	if err != nil {
 		switch err {
 		case erro.ErrNotFound:
