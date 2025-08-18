@@ -5,7 +5,6 @@ import(
 	"strconv"
 	"net"
 	"context"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
@@ -28,11 +27,6 @@ func GetInfoPod() (	model.InfoPod, model.Server) {
 
 	var infoPod 	model.InfoPod
 	var server		model.Server
-
-	server.ReadTimeout = 60
-	server.WriteTimeout = 60
-	server.IdleTimeout = 60
-	server.CtxTimeout = 60
 
 	if os.Getenv("API_VERSION") !=  "" {
 		infoPod.ApiVersion = os.Getenv("API_VERSION")
@@ -87,21 +81,16 @@ func GetInfoPod() (	model.InfoPod, model.Server) {
 		server.Port = intVar
 	}
 
-	return infoPod, server
-}
+	
+	server.ReadTimeout = 10
+	server.WriteTimeout = 10
+	server.IdleTimeout = 60
+	server.CtxTimeout = 10
 
-
-// Convert time string to time
-func ConvertToDate(date_str string) (*time.Time, error){
-	childLogger.Debug().Msg("ConvertToDate")
-
-	layout := "2006-01-02"
-
-	date, err := time.Parse(layout, date_str)
-	if err != nil {
-		log.Error().Err(err).Msg("error parsing date")
-		return nil, err
+	if os.Getenv("CTX_TIMEOUT") !=  "" {
+		intVar, _ := strconv.Atoi(os.Getenv("CTX_TIMEOUT"))
+		server.CtxTimeout = intVar
 	}
 
-	return &date, nil
+	return infoPod, server
 }

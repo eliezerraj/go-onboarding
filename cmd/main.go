@@ -93,7 +93,7 @@ func main (){
 	// wire	
 	database := database.NewWorkerRepository(&databasePGServer)
 	workerService := service.NewWorkerService(database, s3BucketWorker, appServer.AwsService)
-	httpRouters := api.NewHttpRouters(workerService)
+	httpRouters := api.NewHttpRouters(workerService, time.Duration(appServer.Server.CtxTimeout))
 
 	// start server
 	httpServer := server.NewHttpAppServer(appServer.Server)
