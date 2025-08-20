@@ -16,4 +16,5 @@ var (
 	ErrServer		 	= errors.New("server identified error")
 	ErrHTTPForbiden		= errors.New("forbiden request")
 	ErrInvalid			= errors.New("invalid data")
+	ErrTimeout			= errors.New("timeout: context deadline exceeded.")
 )

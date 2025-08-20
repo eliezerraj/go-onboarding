@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"reflect"
 	"io/ioutil"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 
@@ -171,9 +172,16 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 
 	res, err := h.workerService.UpdatePerson(ctx, &onBoarding)
 	if err != nil {
+
+		if strings.Contains(err.Error(), "context deadline exceeded") {
+    		err = erro.ErrTimeout
+		} 
+
 		switch err {
 		case erro.ErrNotFound:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
+		case erro.ErrTimeout:
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
 		default:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
@@ -205,9 +213,16 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 
 	res, err := h.workerService.ListPerson(ctx, &onBoarding)
 	if err != nil {
+
+		if strings.Contains(err.Error(), "context deadline exceeded") {
+    		err = erro.ErrTimeout
+		} 
+
 		switch err {
 		case erro.ErrNotFound:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
+		case erro.ErrTimeout:
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
 		default:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
@@ -259,9 +274,16 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 
 	err = h.workerService.UploadFile(ctx, &onboardingFile)
 	if err != nil {
+
+		if strings.Contains(err.Error(), "context deadline exceeded") {
+    		err = erro.ErrTimeout
+		} 
+
 		switch err {
 		case erro.ErrNotFound:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
+		case erro.ErrTimeout:
+			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
 		default:
 			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
 		}
