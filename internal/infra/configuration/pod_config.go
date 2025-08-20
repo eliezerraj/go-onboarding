@@ -81,9 +81,9 @@ func GetInfoPod() (	model.InfoPod, model.Server) {
 		server.Port = intVar
 	}
 
-	server.ReadTimeout = 60
-	server.WriteTimeout = 60
-	server.IdleTimeout = 60
+	server.ReadTimeout = 120
+	server.WriteTimeout = 120
+	server.IdleTimeout = 120
 	server.CtxTimeout = 5
 
 	if os.Getenv("CTX_TIMEOUT") !=  "" {
