@@ -104,6 +104,10 @@ Resources:
               StringEquals:
                 "aws:ResourceTag/efs.csi.aws.com/cluster": true
             Resource: '*'
+            Effect: Allow
+          - Action:
+            - ec2:CreateVolume
+            Resource: '*'
             Effect: Allow  
       Tags:
       - Key: env
