@@ -81,6 +81,8 @@ Resources:
             - secretsmanager:GetResourcePolicy
             - secretsmanager:GetSecretValue
             - secretsmanager:DescribeSecret
+            - secretsmanager:PutSecret
+            - secretsmanager:ListSecrets
             - secretsmanager:ListSecretVersionIds
             Resource: '*'
             Effect: Allow
