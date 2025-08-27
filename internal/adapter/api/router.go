@@ -82,6 +82,24 @@ func (h *HttpRouters) Stat(rw http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(rw).Encode(res)
 }
 
+// About handle error
+func (h *HttpRouters) ErrorHandler(trace_id string, err error) *coreJson.APIError {
+	if strings.Contains(err.Error(), "context deadline exceeded") {
+    	err = erro.ErrTimeout
+	} 
+	switch err {
+	case erro.ErrBadRequest:
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
+	case erro.ErrNotFound:
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
+	case erro.ErrTimeout:
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
+	default:
+		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
+	}
+	return &core_apiError
+}
+
 // About add person
 func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error {
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", req.Context().Value("trace-request-id")).Send()
@@ -97,20 +115,13 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
-		return &core_apiError
+		return h.ErrorHandler(trace_id, erro.ErrBadRequest)
     }
 	defer req.Body.Close()
 
 	res, err := h.workerService.AddPerson(ctx, &onBoarding)
 	if err != nil {
-		switch err {
-		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
-		default:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
-		}
-		return &core_apiError
+		return h.ErrorHandler(trace_id, err)
 	}
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
@@ -138,13 +149,7 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 
 	res, err := h.workerService.GetPerson(ctx, &onBoarding)
 	if err != nil {
-		switch err {
-		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
-		default:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
-		}
-		return &core_apiError
+		return h.ErrorHandler(trace_id, err)
 	}
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
@@ -165,27 +170,13 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 	onBoarding := model.Onboarding{}
 	err := json.NewDecoder(req.Body).Decode(&onBoarding)
     if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
-		return &core_apiError
+		return h.ErrorHandler(trace_id, erro.ErrBadRequest)
     }
 	defer req.Body.Close()
 
 	res, err := h.workerService.UpdatePerson(ctx, &onBoarding)
 	if err != nil {
-
-		if strings.Contains(err.Error(), "context deadline exceeded") {
-    		err = erro.ErrTimeout
-		} 
-
-		switch err {
-		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
-		case erro.ErrTimeout:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
-		default:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
-		}
-		return &core_apiError
+		return h.ErrorHandler(trace_id, err)
 	}
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
@@ -213,20 +204,7 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 
 	res, err := h.workerService.ListPerson(ctx, &onBoarding)
 	if err != nil {
-
-		if strings.Contains(err.Error(), "context deadline exceeded") {
-    		err = erro.ErrTimeout
-		} 
-
-		switch err {
-		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
-		case erro.ErrTimeout:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
-		default:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
-		}
-		return &core_apiError
+		return h.ErrorHandler(trace_id, err)
 	}
 	
 	return core_json.WriteJSON(rw, http.StatusOK, res)
@@ -248,8 +226,7 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 	// Check the size
 	err := req.ParseMultipartForm(20 << 20) //20Mb
 	if err != nil {
-		core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusBadRequest)
-		return &core_apiError
+		return h.ErrorHandler(trace_id, erro.ErrBadRequest)
 	}
 
 	// Open a form
@@ -274,20 +251,7 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
 
 	err = h.workerService.UploadFile(ctx, &onboardingFile)
 	if err != nil {
-
-		if strings.Contains(err.Error(), "context deadline exceeded") {
-    		err = erro.ErrTimeout
-		} 
-
-		switch err {
-		case erro.ErrNotFound:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusNotFound)
-		case erro.ErrTimeout:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusGatewayTimeout)
-		default:
-			core_apiError = core_apiError.NewAPIError(err, trace_id, http.StatusInternalServerError)
-		}
-		return &core_apiError
+		return h.ErrorHandler(trace_id, err)
 	}
 
 	return json.NewEncoder(rw).Encode(model.MessageRouter{Message: "true"})
