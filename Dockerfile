@@ -1,7 +1,7 @@
 #docker build -t go-oauth .
 #docker run -dit --name go-oauth -p 5100:5100 go-oauth sleep infinity
 
-FROM golang:1.23.3 As builder
+FROM golang:1.24 As builder
 
 RUN apt-get update && apt-get install bash && apt-get install -y --no-install-recommends ca-certificates
 
