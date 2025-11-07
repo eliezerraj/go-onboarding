@@ -17,7 +17,7 @@ spec:
       labels:
         app: *app-name
     spec:
-      serviceAccountName: sa-go-onboarding
+      serviceAccountName: sa-go-onboarding-pod-identity
       volumes:
       - name: volume-secret
         secret:
