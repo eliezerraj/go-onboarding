@@ -47,7 +47,7 @@ func (s *WorkerService) Stat(ctx context.Context) (go_core_pg.PoolStats){
 func (s *WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","AddPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
-	span := tracerProvider.Span(ctx, "service.AddPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "service.AddPerson")
 	defer span.End()
 	
 	tx, conn, err := s.workerRepository.DatabasePGServer.StartTx(ctx)
@@ -77,7 +77,7 @@ func (s *WorkerService) AddPerson(ctx context.Context, onboarding *model.Onboard
 func (s *WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","GetPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
-	span := tracerProvider.Span(ctx, "service.GetPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "service.GetPerson")
 	defer span.End()
 	
 	res, err := s.workerRepository.GetPerson(ctx, onboarding)
@@ -91,7 +91,7 @@ func (s *WorkerService) GetPerson(ctx context.Context, onboarding *model.Onboard
 func (s *WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onboarding) (*model.Onboarding, error){
 	childLogger.Info().Str("func","UpdatePerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
-	span := tracerProvider.Span(ctx, "service.UpdatePerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "service.UpdatePerson")
 	defer span.End()
 	
 	tx, conn, err := s.workerRepository.DatabasePGServer.StartTx(ctx)
@@ -131,7 +131,7 @@ func (s *WorkerService) UpdatePerson(ctx context.Context, onboarding *model.Onbo
 func (s *WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboarding) (*[]model.Onboarding, error){
 	childLogger.Info().Str("func","ListPerson").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Interface("onboarding", onboarding).Send()
 
-	span := tracerProvider.Span(ctx, "service.ListPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "service.ListPerson")
 	defer span.End()
 	
 	res, err := s.workerRepository.ListPerson(ctx, onboarding)
@@ -145,7 +145,7 @@ func (s *WorkerService) ListPerson(ctx context.Context, onboarding *model.Onboar
 func (s *WorkerService) UploadFile(ctx context.Context, onboardingFile *model.OnboardingFile) (error){
 	childLogger.Info().Str("func","UploadFile").Interface("trace-resquest-id", ctx.Value("trace-request-id")).Send()
 
-	span := tracerProvider.Span(ctx, "service.UploadFile")
+	ctx, span := tracerProvider.SpanCtx(ctx, "service.UploadFile")
 	defer span.End()
 	
 	onboardingFile.BucketName = s.awsService.BucketName

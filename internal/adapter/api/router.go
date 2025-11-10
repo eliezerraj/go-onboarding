@@ -107,7 +107,7 @@ func (h *HttpRouters) AddPerson(rw http.ResponseWriter, req *http.Request) error
 	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
     defer cancel()
 
-	span := tracerProvider.Span(ctx, "adapter.api.AddPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "adapter.api.AddPerson")
 	defer span.End()
 
 	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
@@ -134,7 +134,7 @@ func (h *HttpRouters) GetPerson(rw http.ResponseWriter, req *http.Request) error
 	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
     defer cancel()
 
-	span := tracerProvider.Span(ctx, "adapter.api.GetPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "adapter.api.GetPerson")
 	defer span.End()
 
 	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
@@ -162,7 +162,7 @@ func (h *HttpRouters) UpdatePerson(rw http.ResponseWriter, req *http.Request) er
 	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
     defer cancel()
 
-	span := tracerProvider.Span(ctx, "adapter.api.UpdatePerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "adapter.api.UpdatePerson")
 	defer span.End()
 
 	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
@@ -189,7 +189,7 @@ func (h *HttpRouters) ListPerson(rw http.ResponseWriter, req *http.Request) erro
 	ctx, cancel := context.WithTimeout(req.Context(), h.ctxTimeout * time.Second)
     defer cancel()
 
-	span := tracerProvider.Span(ctx, "adapter.api.ListPerson")
+	ctx, span := tracerProvider.SpanCtx(ctx, "adapter.api.ListPerson")
 	defer span.End()
 
 	trace_id := fmt.Sprintf("%v", ctx.Value("trace-request-id"))
@@ -218,7 +218,7 @@ func (h *HttpRouters) UploadFile(rw http.ResponseWriter, req *http.Request) erro
     defer cancel()
 
 	// Trace
-	span := tracerProvider.Span(ctx, "adapter.api.UploadFile")
+	ctx, span := tracerProvider.SpanCtx(ctx, "adapter.api.UploadFile")
 	defer span.End()
 
 	trace_id := fmt.Sprintf("%v",ctx.Value("trace-request-id"))
